@@ -1,3 +1,16 @@
+addpath('sourceCode')
+%Load matlab model generated from data/model.xlsx using the RAVEN toolbox.
+load('data/model.mat');
+
+%Load specific activity data.
+model = mapDataToRxns(model, 'data/RxnAndSA.txt');
+
+%Add a mass constraint metabolite to each enzymatic reaction in the S-matrix
+model = addSpecificActivityConstraint(model, 0.5, 0.1, 60);
+
+%Make the S matrix strictly positive.
+model = addReversedReactions(model);
+
 substrate1 = 'glcIN'; %glcIN 
 
 gluIn = 1000;
@@ -6,7 +19,7 @@ growth = 1000;
 
 addpath('sourceCode')
 
-numberOfTests = 10000;
+numberOfTests = 1000;
 aParam = [0.3 0.6 1];
 
 tmpModel = model;
@@ -34,6 +47,7 @@ tmpModel = setParam(tmpModel,'ub',{'ethOUT', 'acOUT'}, [1000, 1000]);
 tmpModel = setParam(tmpModel,'obj',{'GROWTH'}, 1);
 tmpModel = setParam(tmpModel,'lb',{'GROWTH'}, 0);
 tmpModel = setParam(tmpModel,'ub',{'GROWTH'}, 1000);
+%can cause infeasibility
 tmpModel = setParam(tmpModel,'lb',{'ATPX'}, 0);  %0.5 mol/h maintainence
 
 result = zeros(length(aParam), numberOfTests, length(dataPositions));
@@ -80,7 +94,7 @@ legend({val1, val2, val3}, 'Location', 'NorthEast')
 %%
 
 close all
-histogramPostions = linspace(0.25, 0.55, 50);
+histogramPostions = linspace(0.2, 0.7, 50);
 ethCount = zeros(length(aParam), 1);
 acCount = zeros(length(aParam), 1);
 
